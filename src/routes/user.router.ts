@@ -2,6 +2,7 @@ import express from "express";
 import { decodeJwtToken } from "../util/utils";
 import { UserModel } from "../schema/users.schema";
 import { ReferralModel } from "../schema/referral.schema";
+import mongoose from "mongoose";
 const UserRouter = express.Router();
 UserRouter.get("/", async (req, res) => {
   const authorization = req.headers.authorization?.split(" ")[1];
@@ -17,21 +18,24 @@ UserRouter.get("/", async (req, res) => {
 UserRouter.get("/referrals", async (req, res) => {
   const authorization = req.headers.authorization?.split(" ")[1];
   const userDetails = decodeJwtToken(authorization);
-  const referrals = await ReferralModel.aggregate([
-    {
-      $match: {
-        refferedBy: userDetails.userId,
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "refferedUser",
-        foreignField: "userId",
-        as: "refferedUserDetails",
-      },
-    },
-  ]);
+  console.log("checking the userDetails===>", userDetails, {
+    referredBy: mongoose.mongo.BSON.ObjectId.createFromHexString(
+      userDetails._doc._id,
+    ),
+  });
+  const referrals = await ReferralModel.aggregate()
+    .match({
+      referredBy: mongoose.mongo.BSON.ObjectId.createFromHexString(
+        userDetails._doc._id,
+      ),
+    })
+    .lookup({
+      from: "users",
+      as: "refferedUserDetails",
+      localField: "referredUser",
+      foreignField: "_id",
+    })
+    .exec();
   res.status(200).send({ referrals });
 });
 

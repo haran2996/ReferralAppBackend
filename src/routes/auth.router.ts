@@ -19,6 +19,7 @@ AuthRouter.post("/login", async (req, res) => {
   if (!user) {
     throw new Error("Email or Password is wrong");
   }
+  console.log("testing user details===>>", user);
   const token = encodeJwtToken({
     ...user,
     password: undefined,
@@ -64,17 +65,19 @@ AuthRouter.post("/signup", async (req, res) => {
     userId,
     referralCode: userId,
   });
-  await newUser.save();
+  const result = await newUser.save();
+  console.log("successfully created user ", result);
   if (referralCode) {
     const newReferral = new ReferralModel({
       referralPoints: 10,
       referredDate: new Date(),
       referralId: generateId("referral"),
-      refferedUser: newUser.userId,
-      refferedBy: referralUser.userId,
+      referredUser: newUser._id,
+      referredBy: referralUser._id,
     });
-    await newReferral.save();
+    const referralResult = await newReferral.save();
+    console.log("Successfully create referral", referralResult);
   }
-  res.status(201).send("User Added Successfully");
+  res.status(201).send("User Added Successfully!!");
 });
 export { AuthRouter };
