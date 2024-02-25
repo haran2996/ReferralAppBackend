@@ -7,7 +7,11 @@ export const AuthMiddleware = (
   next,
 ) => {
   try {
-    if (req.path.startsWith("/auth") || req.path === "/") {
+    if (
+      req.path.startsWith("/auth") ||
+      req.path === "/" ||
+      req.method === "OPTIONS"
+    ) {
       return next();
     }
     const authHeader = req.headers.authorization;

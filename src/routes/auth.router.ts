@@ -7,19 +7,18 @@ const AuthRouter = express.Router();
 AuthRouter.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email?.match(/[\w-\.]+@[\w-]+\.[\w-\.]/)) {
-    throw new Error("Invalid Email");
+    throw { message: "Invalid Email", status: 400 };
   }
   if (!password) {
-    throw new Error("Password is missing");
+    throw { message: "Password is missing", status: 400 };
   }
   const user = await UserModel.findOne({
     email,
     password,
   });
   if (!user) {
-    throw new Error("Email or Password is wrong");
+    throw { message: "Email or Password is wrong", status: 400 };
   }
-  console.log("testing user details===>>", user);
   const token = encodeJwtToken({
     ...user,
     password: undefined,
@@ -27,57 +26,61 @@ AuthRouter.post("/login", async (req, res) => {
   res.status(200).send({ token });
 });
 AuthRouter.post("/signup", async (req, res) => {
-  const { email, password, fname, lname, referralCode } = req.body;
-  if (!email?.match(/[\w-\.]+@[\w-]+\.[\w-\.]/)) {
-    throw new Error("Invalid Email");
-  }
-  if (!password) {
-    throw new Error("Password is missing");
-  }
-  if (!fname) {
-    throw new Error("First name is missing");
-  }
-  if (!lname) {
-    throw new Error("Last name is missing");
-  }
-
-  const user = await UserModel.findOne({
-    email,
-  });
-  if (user) {
-    throw new Error("Email is already registered");
-  }
-  let referralUser;
-  if (referralCode) {
-    referralUser = await UserModel.findOne({
-      referralCode,
-    });
-    if (!referralUser) {
-      throw new Error("Invalid Referral code");
+  try {
+    const { email, password, fname, lname, referralCode } = req.body;
+    if (!email?.match(/[\w-\.]+@[\w-]+(\.[\w-\.]+)?/)) {
+      throw { message: "Invalid Email", status: 400 };
     }
-  }
-  const userId = generateId("user");
-  const newUser = new UserModel({
-    email,
-    password,
-    fname,
-    lname,
-    userId,
-    referralCode: userId,
-  });
-  const result = await newUser.save();
-  console.log("successfully created user ", result);
-  if (referralCode) {
-    const newReferral = new ReferralModel({
-      referralPoints: 10,
-      referredDate: new Date(),
-      referralId: generateId("referral"),
-      referredUser: newUser._id,
-      referredBy: referralUser._id,
+    if (!password) {
+      throw { message: "Password is missingl", status: 400 };
+    }
+    if (!fname) {
+      throw { message: "First name is missing", status: 400 };
+    }
+    if (!lname) {
+      throw { message: "Last name is missin", status: 400 };
+    }
+
+    const user = await UserModel.findOne({
+      email,
     });
-    const referralResult = await newReferral.save();
-    console.log("Successfully create referral", referralResult);
+    if (user) {
+      throw { message: "Email is already registered", status: 400 };
+    }
+    let referralUser;
+    if (referralCode) {
+      referralUser = await UserModel.findOne({
+        referralCode,
+      });
+      if (!referralUser) {
+        throw { message: "Invalid Referral code", status: 400 };
+      }
+    }
+    const userId = generateId("user");
+    const newUser = new UserModel({
+      email,
+      password,
+      fname,
+      lname,
+      userId,
+      referralCode: userId,
+    });
+    const result = await newUser.save();
+    console.log("successfully created user ", result);
+    if (referralCode) {
+      const newReferral = new ReferralModel({
+        referralPoints: 10,
+        referredDate: new Date(),
+        referralId: generateId("referral"),
+        referredUser: newUser._id,
+        referredBy: referralUser._id,
+      });
+      const referralResult = await newReferral.save();
+      console.log("Successfully create referral", referralResult);
+    }
+    res.status(201).send({ message: "User Added Successfully!!" });
+  } catch (err) {
+    res.status(err.status || 400).send({ message: err.message });
   }
-  res.status(201).send("User Added Successfully!!");
 });
 export { AuthRouter };

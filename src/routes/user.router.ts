@@ -18,11 +18,6 @@ UserRouter.get("/", async (req, res) => {
 UserRouter.get("/referrals", async (req, res) => {
   const authorization = req.headers.authorization?.split(" ")[1];
   const userDetails = decodeJwtToken(authorization);
-  console.log("checking the userDetails===>", userDetails, {
-    referredBy: mongoose.mongo.BSON.ObjectId.createFromHexString(
-      userDetails._doc._id,
-    ),
-  });
   const referrals = await ReferralModel.aggregate()
     .match({
       referredBy: mongoose.mongo.BSON.ObjectId.createFromHexString(
@@ -31,7 +26,7 @@ UserRouter.get("/referrals", async (req, res) => {
     })
     .lookup({
       from: "users",
-      as: "refferedUserDetails",
+      as: "referredUserDetails",
       localField: "referredUser",
       foreignField: "_id",
     })

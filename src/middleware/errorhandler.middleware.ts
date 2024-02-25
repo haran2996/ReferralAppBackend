@@ -6,9 +6,9 @@ export const ErrorHandleMiddleware = (
   res: express.Response,
   next,
 ) => {
-  console.log("Unhandled error caught", err);
+  console.log("Unhandled error caught==>", err);
   if (res.headersSent) {
-    return next(err);
+    return next();
   }
-  res.status(500).send({ error: err });
+  res.status(err.status || 400).send({ message: err.message });
 };

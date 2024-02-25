@@ -13,5 +13,5 @@ export const encodeJwtToken = (details) => {
 };
 
 export const generateId = (prefix) => {
-  return `${prefix}_${v4().split("-").join("")}`;
+  return `${prefix}_${v4().split("-")[0]}`;
 };
