@@ -2,6 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import { AuthRouter } from "./routes/auth.router";
 import { UserRouter } from "./routes/user.router";
+import { AuthMiddleware } from "./middleware/auth.middleware";
+import { ErrorHandleMiddleware } from "./middleware/errorhandler.middleware";
 
 const app: express.Application = express();
 app.use(express.json());
@@ -12,6 +14,8 @@ mongoose
   )
   .then(() => {
     console.log("db connected");
+    app.use(AuthMiddleware);
+    app.use(ErrorHandleMiddleware);
     app.use("/auth", AuthRouter);
     app.use("/user", UserRouter);
     app.get("/", function (req, res) {

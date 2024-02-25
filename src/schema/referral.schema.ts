@@ -2,7 +2,12 @@ import { Schema, model, Types } from "mongoose";
 const ReferralSchema = new Schema(
   {
     refferedUser: {
-      type: Types.ObjectId,
+      type: String,
+      required: [true, "Reffered user is required"],
+      unique: [true, "User can be referred only once"],
+    },
+    refferedBy: {
+      type: String,
       required: [true, "Reffered user is required"],
     },
     referralPoints: {
@@ -10,7 +15,7 @@ const ReferralSchema = new Schema(
       required: [true, "Referral points is required"],
     },
     referralId: {
-      type: Types.ObjectId,
+      type: String,
       required: [true, "Email is required"],
       unique: [true, "Email must be unique"],
     },
