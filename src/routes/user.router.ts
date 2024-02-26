@@ -7,13 +7,15 @@ const UserRouter = express.Router();
 UserRouter.get("/", async (req, res) => {
   const authorization = req.headers.authorization?.split(" ")[1];
   const userDetails = decodeJwtToken(authorization);
+  console.log("userDetails===>>", userDetails);
   const user = await UserModel.findOne({
-    id: userDetails.id,
+    _id: userDetails._id,
   });
-  if (!user) {
+  const userJson = user?.toJSON();
+  if (!userJson) {
     res.status(404).send("User details not found");
   }
-  res.status(200).send({ userDetails: user });
+  res.status(200).send({ userDetails: userJson });
 });
 UserRouter.get("/referrals", async (req, res) => {
   const authorization = req.headers.authorization?.split(" ")[1];
@@ -21,7 +23,7 @@ UserRouter.get("/referrals", async (req, res) => {
   const referrals = await ReferralModel.aggregate()
     .match({
       referredBy: mongoose.mongo.BSON.ObjectId.createFromHexString(
-        userDetails._doc._id,
+        userDetails._id,
       ),
     })
     .lookup({

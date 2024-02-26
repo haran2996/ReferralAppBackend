@@ -16,17 +16,20 @@ AuthRouter.post("/login", async (req, res) => {
     email,
     password,
   });
-  if (!user) {
+  const userJson = user?.toJSON();
+  if (!userJson) {
     throw { message: "Email or Password is wrong", status: 400 };
   }
+
   const token = encodeJwtToken({
-    ...user,
+    ...userJson,
     password: undefined,
   });
   res.status(200).send({ token });
 });
 AuthRouter.post("/signup", async (req, res) => {
   try {
+    console.log("checking the incomming request==>>", req.body);
     const { email, password, fname, lname, referralCode } = req.body;
     if (!email?.match(/[\w-\.]+@[\w-]+(\.[\w-\.]+)?/)) {
       throw { message: "Invalid Email", status: 400 };
@@ -66,7 +69,7 @@ AuthRouter.post("/signup", async (req, res) => {
       referralCode: userId,
     });
     const result = await newUser.save();
-    console.log("successfully created user ", result);
+    console.log("successfully created user !!", result);
     if (referralCode) {
       const newReferral = new ReferralModel({
         referralPoints: 10,
@@ -78,7 +81,7 @@ AuthRouter.post("/signup", async (req, res) => {
       const referralResult = await newReferral.save();
       console.log("Successfully create referral", referralResult);
     }
-    res.status(201).send({ message: "User Added Successfully!!" });
+    res.status(201).send({ message: "User Added Successfully" });
   } catch (err) {
     res.status(err.status || 400).send({ message: err.message });
   }
